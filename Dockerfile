@@ -1,5 +1,5 @@
 FROM pytorch/pytorch:latest
-WORKDIR /crawl  
+WORKDIR /rag  
 COPY . .
 
 ENV LC_ALL ko_KR.UTF-8 
@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y \
     gnupg \
     apt-transport-https \
     ca-certificates \
+    vim
     --no-install-recommends
 
 # Google Chrome 설치
