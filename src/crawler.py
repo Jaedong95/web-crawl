@@ -7,6 +7,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 import logging
 import time
+import os
 
 # 로깅 설정
 logging.basicConfig(filename="crawler.log", level=logging.INFO, 
@@ -21,7 +22,7 @@ class Crawler():
     
     def __set_option(self):
         self.chrome_options = Options()
-        # chrome_options.add_argument("--headless")  # Headless 모드 비활성화 (문제 해결 후 다시 활성화 가능)
+        self.chrome_options.add_argument("--headless")  # Headless 모드 비활성화 (문제 해결 후 다시 활성화 가능)
         self.chrome_options.add_argument("--no-sandbox")
         self.chrome_options.add_argument("--disable-dev-shm-usage")
         self.chrome_options.add_argument("--disable-gpu")
@@ -82,17 +83,31 @@ class IBKCrawler(Crawler):
     
     def download_file(self, start_date, end_date, wait_time=1):
         download_page_button = self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div[2]/div[2]/div[2]/div[2]/div')
-        self.click_button(download_page_button)
+        self.click_button(download_page_button)   
 
-        start_date_field = self.driver.find_element(By.XPATH, '//input[@type="date"]')
+        # start_date_field = self.driver.find_element(By.XPATH, '//input[@type="date"]')
+        start_date_field = self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div[2]/div[2]/div[3]/div/div[3]/input')
         start_date_field.clear()
         start_date_field.send_keys(f"{start_date}")   # "09-03"
-        time.sleep(wait_time)  # 작은 지연 시간 추가
+        time.sleep(wait_time)  # 작은 지연 시간 추가   
 
-        end_date_field = self.driver.find_element(By.XPATH, '(//input[@type="date"])[2]')
+        # end_date_field = self.driver.find_element(By.XPATH, '(//input[@type="date"])[2]')
+        end_date_field = self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div[2]/div[2]/div[3]/div/div[4]/input')
         end_date_field.clear()
         end_date_field.send_keys(f"{end_date}")
         time.sleep(wait_time)  # 작은 지연 시간 추가
 
         file_download_button = self.driver.find_element(By.XPATH, '//*[@id="root"]/div/div[2]/div[2]/div[3]/div/button')
         self.click_button(file_download_button)
+    
+    def rename_file(self, year, month, day):
+        download_date = str(year) + str(month).zfill(2) + str(day).zfill(2)
+        old_file = f"aianalyst_ibks-log_{download_date}-{download_date}.xlsx"
+        new_file = f"ibk-convlog_{download_date}.xlsx"
+        try:
+            os.rename(old_file, new_file)
+            logging.info(f"파일 이름이 {old_file}에서 {new_file}으로 변경되었습니다.")
+        except FileNotFoundError:
+            logging.error(f"파일 {old_file}을(를) 찾을 수 없습니다.")
+        except Exception as e:
+            logging.error(f"파일 이름 변경 중 오류가 발생했습니다: {e}")
